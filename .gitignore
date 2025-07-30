@@ -1,0 +1,48 @@
+# Python virtual environments
+.venv/
+venv/
+*_venv/
+.edazer_venv/
+
+# Bytecode and cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.eggs/
+
+# Installer logs
+pip-log.txt
+
+# PyInstaller
+*.spec
+
+# VS Code settings
+.vscode/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Test & coverage
+.coverage
+htmlcov/
+*.log
+.cache/
+.pytest_cache/
+
+# Ignore .env or config if you have one
+.env
+.env.*
+
+# OS-generated files
+ehthumbs.db
+desktop.ini
