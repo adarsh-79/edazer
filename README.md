@@ -148,7 +148,6 @@ alive: ['no', 'yes']
 Contributions are highly welcome! 
 
 https://github.com/adarsh-79/edazer
-(to be updated soon)
 
 ---
 
