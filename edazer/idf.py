@@ -1,3 +1,5 @@
+from itables import show, init_notebook_mode
+import itables.options as opt
 
 def interactive_df(activate: bool= True, maxsize: str= "1MB"):
     """
@@ -7,8 +9,6 @@ def interactive_df(activate: bool= True, maxsize: str= "1MB"):
         activate (bool): Whether to activate interactive mode.
         maxsize (str or int): Maximum size of the DataFrames (in bytes like '1MB') for interactively displaying all of it without downsizing.
     """
-    from itables import show, init_notebook_mode
-    import itables.options as opt
     
     if activate:
         opt.maxBytes = maxsize
