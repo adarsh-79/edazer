@@ -1,3 +1,6 @@
+# store sensitive data (non env vars)
+secrets.json
+
 # Python virtual environments
 .venv/
 venv/
