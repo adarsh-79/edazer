@@ -1,3 +1,8 @@
+# private data, sensitive data
+./secrets.json
+
+
+
 # Python virtual environments
 .venv/
 venv/
