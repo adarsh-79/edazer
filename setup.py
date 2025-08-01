@@ -13,7 +13,9 @@ setup(
     "pandas>=1.0.0",
     "ipython>=7.0.0",
     "polars>=0.19.0",
-    "pyarrow>=10.0.0"
+    "pyarrow>=10.0.0",
+    "itables>= 2.4.4",
+    "ydata_profiling>=4.16.1"
     ],
     python_requires=">=3.6",
     include_package_data=True,
