@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="edazer",
-    version="0.1.3",
+    version="0.1.3.1",
     description="lightweight library that provides functionalities for common EDA tasks",
     long_description= open("README.md").read(),
     long_description_content_type= "text/markdown",
