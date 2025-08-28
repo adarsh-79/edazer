@@ -5,4 +5,3 @@ ipywidgets>=8.0.0
 pyarrow>=10.0.0
 typing_extensions>=4.14.1
 itables>= 2.4.4
-ydata_profiling>=4.16.1
