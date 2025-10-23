@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import List
 from itertools import product
-from edazer import Edazer
+from ..core import Edazer
 
 def get_primary_key(
     df: pd.DataFrame,
