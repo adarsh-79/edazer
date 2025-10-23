@@ -43,8 +43,9 @@ pip install edazer
 
 ```python
 import seaborn as sns
-from edazer import Edazer, interactive_df 
+from edazer import Edazer, interactive_df
 from edazer.profiling import show_data_profile
+from edazer import get_primary_key
 
 # Enable interactive DataFrames (via itables)
 interactive_df()
@@ -69,6 +70,9 @@ print(titanic_dz.cols_with_dtype(['float'], exact=False))
 
 # Combine methods: get object columns and show their unique values
 titanic_dz.show_unique_values(column_names=titanic_dz.cols_with_dtype(dtypes=["object"]))
+
+# To identify unique identifiers
+get_primary_key(df, threshold=1.0, n_combos=2)
 
 # View first few rows
 print(titanic_dz.lookup("head"))
