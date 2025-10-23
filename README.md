@@ -3,6 +3,8 @@
 **Edazer** is a lightweight Python package for performing common exploratory data analysis (EDA) tasks.
 It provides quick and intuitive methods to inspect, summarize, and understand datasets—supporting both pandas and polars backends.
 
+*Kaggle Notebook quick tutorial on Edazer**: [https://www.kaggle.com/code/adarsh79x/edazer-for-quick-eda-pandas-polars-profiling]
+
 Includes utilities for:
 *Interactive DataFrame exploration* (via itables)
 
