@@ -8,6 +8,8 @@ Includes utilities for:
 
 *Automated profiling reports* (via a wrapper around ydata-profiling)
 
+*Unique key detection* (via get_primary_key)
+
 🚀 Ideal for:
 
 Jupyter notebooks
@@ -25,6 +27,7 @@ Early-stage dataset exploration
 - **Type-based Column Selection:** Find columns by dtype (e.g., int, float categorical).
 - **Flexible Subsetting:** Use the `lookup` method to view head, tail, or random samples.
 - **Custom DataFrame Naming:** Track multiple DataFrames with custom names for clarity.
+- **Primary Key Detection:** Automatically identify single or multi-column combinations that can serve as unique identifiers.
 
 ---
 
@@ -127,6 +130,41 @@ Quickly inspect data.
 
 - `option`: `"head"`, `"tail"`, or `"sample"`
 
+---
+
+### `🆕 get_primary_key(df, threshold=0.9, n_combos=1, valid_column_dtypes=None)`
+
+Identify column(s) or column combinations that can serve as unique keys.
+
+Parameters
+
+- `df`  – The input DataFrame.
+
+- `threshold` – Proportion of uniqueness required (default = 0.9).
+
+- `n_combos`– Number of columns to combine when testing composite keys (default = 1).
+
+- `valid_column_dtypes` – Data types to consider (default = ["int", "datetime64", "object"]).
+
+Returns
+
+List[str] or List[List[str]]: Candidate key columns or combinations that are likely unique identifiers.
+
+#### Example usage
+
+```python
+from edazer import get_primary_key
+import pandas as pd
+
+df = pd.DataFrame({
+    "id": [1, 2, 3, 4],
+    "name": ["A", "B", "C", "A"],
+    "date": pd.date_range("2023-01-01", periods=4)
+})
+
+get_primary_key(df, threshold=1.0, n_combos=2)
+# Output: [['id', 'name'], ['id', 'date'], ['name', 'date']]
+```
 
 ## Example Output
 
