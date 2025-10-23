@@ -83,13 +83,6 @@ class Edazer:
         self.__df_name = None
         if name is not None:
             self.__df_name = name
-
-    @staticmethod
-    def __version__(): # this method should be availble like edazer.__version__ not in Edazer, so maybe move it to __init__.py. use @property to it.
-        """
-        Returns the version of the Edazer class.
-        """
-        return "0.1.3"
     
     @property
     def _is_pandas_backend(self) -> bool:
