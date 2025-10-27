@@ -36,7 +36,7 @@ Early-stage dataset exploration
 ## Installation
 
 ```bash
-pip install edazer
+pip install edazer==0.1.4.1
 ```
 
 ---
