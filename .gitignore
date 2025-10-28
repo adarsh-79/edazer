@@ -1,5 +1,5 @@
 # store sensitive data (non env vars)
-secrets.json
+pypi_key.json
 
 # Python virtual environments
 .venv/
