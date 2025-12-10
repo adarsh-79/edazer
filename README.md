@@ -1,24 +1,22 @@
 # edazer
 
 **edazer** is a lightweight Python package for performing common exploratory data analysis (EDA) tasks. Instead of having to write code to perform the same operation every time we work on a new project, edazer intends to quicken up these steps in few lines of code.
+
 It provides quick and intuitive methods to inspect, summarize, and understand datasets—supporting both pandas and polars backends.
 
 *Kaggle Notebook quick tutorial on Edazer**: [https://www.kaggle.com/code/adarsh79x/edazer-for-quick-eda-pandas-polars-profiling]
 
 Includes utilities for:
-*Interactive DataFrame exploration* (via itables)
 
-*Automated profiling reports* (via a wrapper around ydata-profiling)
-
-*Unique key detection* (via get_primary_key)
+* Interactive DataFrame exploration (via itables)
+* Automated profiling reports (via a wrapper around ydata-profiling)
+* Unique key detection (via `get_primary_key()`)
 
 🚀 Ideal for:
 
-Jupyter notebooks
-
-Fast, one-line data profiling
-
-Early-stage dataset exploration
+* Jupyter notebooks
+* Fast, one-line data profiling
+* Early-stage dataset exploration
 
 ---
 
@@ -45,9 +43,8 @@ pip install edazer==0.1.4.1
 
 ```python
 import seaborn as sns
-from edazer import Edazer, interactive_df
+from edazer import Edazer, get_primary_key, interactive_df
 from edazer.profiling import show_data_profile
-from edazer import get_primary_key
 
 # Enable interactive DataFrames (via itables)
 interactive_df()
@@ -142,17 +139,14 @@ Quickly inspect data.
 
 Identify column(s) or column combinations that can serve as unique keys.
 
-Parameters
+**Parameters:**
 
 - `df`  – The input DataFrame.
-
 - `threshold` – Proportion of uniqueness required (default = 0.9).
-
 - `n_combos`– Number of columns to combine when testing composite keys (default = 1).
-
 - `valid_column_dtypes` – Data types to consider (default = ["int", "datetime64", "object"]).
 
-Returns
+**Returns**
 
 List[str] or List[List[str]]: Candidate key columns or combinations that are likely unique identifiers.
 
