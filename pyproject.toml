@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "edazer"
+version = "0.1.4.1"
+description = "lightweight library that provides functionalities for common EDA tasks"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Adarsh R", email = "7adarsh9@gmail.com" },
+]
+license = { text = "MIT" }
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "pandas>=1.0.0",
+    "ipython>=7.0.0",
+    "polars>=0.19.0",
+    "pyarrow>=10.0.0",
+    "itables>=2.4.4",
+    # "ydata_profiling>=4.16.1"
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/adarsh-79/edazer"
+Repository = "https://github.com/adarsh-79/edazer"
+
+[tool.hatch.build]
+include = [
+    "edazer/**",
+]
