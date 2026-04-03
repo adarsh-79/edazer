@@ -295,6 +295,7 @@ class Edazer:
         
         return result if return_dtype_map else list(result.keys())
     
+__all__ = [Edazer]
 
 if __name__ == "__main__":
     import seaborn as sns
