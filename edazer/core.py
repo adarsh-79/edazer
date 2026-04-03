@@ -1,322 +1,305 @@
 import pandas as pd
 import polars as pl
-from typing import List, Union, Dict
-import warnings
+
+from typing import Callable
 from IPython import get_ipython
+import warnings
 
-"""
-- use in ipynb files as display() is involved
-- few validation checks
-"""
 
-class Edazer: 
-    """
-    Exploratory data analyzer. Can be used to analyze multiple DataFrames separately,
-    each as an instance of Edazer.
+def _smart_display(obj):
+    """Displays an object using IPython's display if available, else prints."""
+    try:
+        from IPython.display import display
+        display(obj)
+    except ImportError:
+        print(obj)
 
-    Parameters
-    ----------
-    `df` : pd.DataFrame
-        The DataFrame to analyze.
-
-    `name` : str, optional
-        Name of the DataFrame. If not provided, the analyzer will not display a name.
-
-    `backend` : str, optional
-    The backend to use for DataFrame operations. 
-    Must be either `'pandas'` or `'polars'`. Defaults to `'pandas'`.
-
-    Notes
-    -------
-        If the input DataFrame is not of the specified backend type, 
-        it will be automatically converted.
-    """
-
-    __shell = get_ipython().__class__.__name__ 
-    if __shell != "ZMQInteractiveShell":
-        warnings.warn("Some methods may work only in a .ipynb file", UserWarning)
-
-    @staticmethod
-    def _validate_df(df):
-        if not isinstance(df, (pd.DataFrame, pl.DataFrame)):
-                raise TypeError(f"The Input dataframe must be a pandas Dataframe or polars dataframe\nBut received: {type(df)}")
-     
-
-    @staticmethod
-    def pd_pl_conv(df: pd.DataFrame| pl.DataFrame):
-        """
-        Automatically converts between pandas Dataframe and polars DataFrame based on input Dataframe type
-        - Converts to `polars.DataFrame` if input is a `pandas.DataFrame`.
-        - Converts to `pandas.DataFrame` if input is a `polars.DataFrame`.
-
-        Parameters
-        ----------
-        `df`: pd.DataFrame| pl.DataFrame
-            The Dataframe to convert
-
-        Returns
-        -------
-        `df` : `pandas.DataFrame` or `polars.DataFrame`
-        """
-
-        Edazer._validate_df(df)
-
-        if isinstance(df, pd.DataFrame):
-            return pl.from_pandas(df)                    # requires pyarrow to be installed
-        return df.to_pandas()
-    
-
-    def __init__(self, df: pd.DataFrame| pl.DataFrame, backend= "pandas", name: str=None): 
+class _PandasEngine:
+    def __init__(self, df: pd.DataFrame):
+         self.df = df
         
-        Edazer._validate_df(df)
-
-        backend = backend.lower()
-        if backend not in ("pandas", "polars"):
-            raise ValueError("Backend must be either pandas or polars.")
-        self._backend = backend
-
-        if self._is_pandas_backend:
-            self.df = Edazer.pd_pl_conv(df) if isinstance(df, pl.DataFrame) else df
-        else:
-            self.df = Edazer.pd_pl_conv(df) if isinstance(df, pd.DataFrame) else df
-        
-        self.__df_name = None
-        if name is not None:
-            self.__df_name = name
-    
-    @property
-    def _is_pandas_backend(self) -> bool:
-        return self._backend == "pandas"
-    
-    @property
-    def backend(self):
-        return self._backend
-    # to deine a func, giving users option to change backend for every ops. a setter fn
-
-    def __repr__(self):
-        if self.__df_name is not None:
-            return f"Analyzer for the DataFrame: {self.__df_name}"
-        else:
-            return super().__repr__()
-
-    def lookup(self, option: str= "head") -> pd.DataFrame:
-        """
-        Return a subset of the DataFrame.
-
-        Parameters
-        ----------
-        `option` : str, optional 
-        The option to choose. Defaults to "head".
-
-        Options:
-        ----------
-        - 'head': Return the first few rows of the DataFrame.
-        - 'tail': Return the last few rows of the DataFrame.
-        - 'sample': Return a random sample of rows from the DataFrame.
-
-        Returns
-        -------
-        pd.DataFrame
-            The selected subset of the DataFrame.
-        """
-        
-        option = option.lower()
-        if (option == "head"):
-            display(self.df.head())
-        elif option == "tail":
-            display(self.df.tail())
-        elif option == "sample":
-            display(self.df.sample())    
-        else: 
-            raise ValueError("Invalid option. Valid options are: head, tail, sample")    
-
     def summarize_df(self):
-        """
-        Summarizes the DataFrame by providing information about its 
-        shape, null values, duplicated rows, unique values, and descriptive statistics.
-
-        The following information is provided:
-        - DataFrame info/ schema
-        - Descriptive statistics (mean, std, min, 25%, 50%, 75%, 99%)
-        - Number of null values
-        - Number of duplicated rows
-        - Number of unique values
-        - DataFrame shape (number of rows and columns)
-        """
-
-        def pd_summarize_df(df = self.df):
             print("DataFrame Info:")
             print("-"*25) 
-            df.info()
+            _smart_display(self.df.info())
             print("\n")
 
             print("DataFrame Description:")
             print("-"*25) 
-            display(df.describe(percentiles=[.25, .50, .75, .99]).T)
+            _smart_display(self.df.describe(percentiles=[.25, .50, .75, .99]).T)
             print("\n")
 
-            print("Number of Null Values:")
+            print("Percentage of Null Values:")
             print("-"*25) 
-            display(df.isnull().sum()) 
+            _smart_display((self.df.isnull().sum() / len(self.df)) * 100)
             print("\n")
 
             print("Number of Duplicated Rows:")
             print("-"*25)
-            display(int(df.duplicated().sum())) 
+            _smart_display(int(self.df.duplicated().sum())) 
             print("\n")
 
             print("Number of Unique Values:")
             print("-"*25)
-            display(df.nunique()) 
+            _smart_display(self.df.nunique()) 
             print("\n")
 
             print("DataFrame Shape:")
             print("-"*25)
-            print(f"No. of Rows:    {df.shape[0]}\nNo. of Columns: {df.shape[1]}")
+            print(f"No. of Rows:    {self.df.shape[0]}\nNo. of Columns: {self.df.shape[1]}")
 
-        def pl_summarize_df(df = self.df):
+    def show_unique_values(self, column_names: list[str], max_unique: int):
+        more_than_max_unique_cols = []
 
-            print("DataFrame Info:")
-            print("-" * 25)
-            display(df.schema)
-            print("\n")
-
-            print("DataFrame Description:")
-            print("-"*25) 
-            
-            desc_df = df.describe(percentiles=(0.25, 0.5, 0.75, 0.99))
-            stat_col = desc_df.columns[0] 
-            new_column_names = [stat_col] + df.columns
-            desc_df.columns = new_column_names
-            display(desc_df)
-            print("\n")
-
-            print("Number of Null Values:")
-            print("-" * 25)
-            display(df.null_count())
-            print("\n")
-
-            print("Number of Duplicated Rows:")
-            print("-" * 25)
-            display(df.is_duplicated().sum())  
-            print("\n")
-
-            print("Number of Unique Values:")
-            print("-" * 25)
-            display(df.n_unique())
-            print("\n")
-
-            print("DataFrame Shape:")
-            print("-" * 25)
-            print(f"No. of Rows:    {df.height} \nNo. of Columns: {df.width}")
-
-        if self._is_pandas_backend:
-            pd_summarize_df()
-        else:
-            pl_summarize_df()
-
-    def show_unique_values(self, column_names: List[str] = None, max_unique: int = 10):
-        """
-        Displays the unique values for specified columns.
-
-        Parameters
-        ----------
-        column_names : List[str], optional
-            List of column names to display unique values for.
-            If None, defaults to object/category columns for pandas,
-            and String/Categorical columns for polars.
-        max_unique : int, optional
-            The maximum number of unique values to display. Defaults to 10.
-
-        Notes
-        -----
-        For numeric columns, pass the column names explicitly using `column_names`.
-        If all selected columns exceed `max_unique` unique values, a message will
-        suggest setting a higher threshold.
-        """
-        if not isinstance(max_unique, int):
-            raise TypeError("'max_unique' must be an integer.")
-
-        self._more_than_max_unique_cols = []
-
-        if self._is_pandas_backend:
-            if column_names is None:
-                column_names = self.df.select_dtypes(include=["category", "object"]).columns
-
-            for col in column_names:
-                unique_vals = self.df[col].unique()
-                if len(unique_vals) <= max_unique:
+        for col in column_names:
+            unique_vals = self.df[col].unique()
+            if len(unique_vals) <= max_unique:
                     print(f"{col}: {list(unique_vals)}")
-                else:
-                    self._more_than_max_unique_cols.append(col)
+            else:
+                more_than_max_unique_cols.append(col)
 
-        else:
-            if column_names is None:
-                column_names = [
-                    col for col, dtype in zip(self.df.columns, self.df.dtypes)
-                    if dtype in (pl.Utf8, pl.Categorical)
-                ]
+        return more_than_max_unique_cols
+    
+    def cols_with_dtype(self, normalize_dtype: Callable[[str], str], dtypes: list[str], exact: bool = False) -> list[str] | dict[str, str]:
+        result = {}
 
-            for col in column_names:
+        for col in self.df.columns:
+            col_dtype_str = str(self.df[col].dtype)
+            match_key = col_dtype_str if exact else normalize_dtype(col_dtype_str)
+            if match_key in dtypes:
+                result[col] = col_dtype_str
+        return result
+
+class _PolarsEngine:
+    
+    def __init__(self, df: pl.DataFrame):
+         self.df = df
+    
+    def summarize_df(self):
+        
+        print("DataFrame Info:")
+        print("-" * 25)
+        _smart_display(self.df.schema)
+        print("\n")
+
+        print("DataFrame Description:")
+        print("-"*25) 
+           
+        desc_df = self.df.describe(percentiles=(0.25, 0.5, 0.75, 0.99))
+        stat_col = desc_df.columns[0] 
+        new_column_names = [stat_col] + self.df.columns
+        desc_df.columns = new_column_names
+        _smart_display(desc_df)
+        print("\n")
+
+        print("Percentage of Null Values:")
+        print("-" * 25)
+        null_counts = self.df.null_count()
+        null_percent = (null_counts / self.df.height) * 100
+        _smart_display(null_percent)
+        print("\n")
+
+        print("Number of Duplicated Rows:")
+        print("-" * 25)
+        _smart_display(self.df.is_duplicated().sum())  
+        print("\n")
+
+        print("Number of Unique Values:")
+        print("-" * 25)
+        _smart_display(self.df.n_unique())
+        print("\n")
+
+        print("DataFrame Shape:")
+        print("-" * 25)
+        print(f"No. of Rows:    {self.df.height} \nNo. of Columns: {self.df.width}")
+    
+    def show_unique_values(self, column_names: list[str], max_unique: int = 10):
+        more_than_max_unique_cols = []
+
+        for col in column_names:
+            try:
                 n_unique = self.df[col].n_unique()
                 if n_unique <= max_unique:
                     unique_vals = list(self.df[col].unique())
                     print(f"{col}: {unique_vals}")
                 else:
-                    self._more_than_max_unique_cols.append(col)
+                    more_than_max_unique_cols.append(col)
+            except Exception:
+                # Skip non-hashable or problematic columns
+                continue
 
-        n_exceeding = len(self._more_than_max_unique_cols)
-        if n_exceeding == len(column_names):
-            print(f"All the mentioned columns have more than {max_unique} unique values.")
-        elif n_exceeding > 0:
-            print(f"\nColumns with more than {max_unique} unique values: {self._more_than_max_unique_cols}")
-            print("Consider setting 'max_unique' to a higher value.")
-        
+        return more_than_max_unique_cols
 
-    def cols_with_dtype(self, dtypes: List[str], exact: bool = False, return_dtype_map: bool = False
-    ) -> Union[List[str], Dict[str, str]]:
-        """
-        Returns column names (or a mapping) of DataFrame columns matching specified data types.
+    def cols_with_dtype(self, normalize_dtype: Callable[[str], str], dtypes: list[str], exact: bool = False) -> list[str] | dict[str, str]:
+        result = {}
+
+        for col, dtype in zip(self.df.columns, self.df.dtypes):
+            if not exact:
+                dtype_str = str(dtype).lower()
+            else:
+                dtype_str = str(dtype)
+    
+            if dtype == pl.Categorical:
+                dtype_str = "categorical"
+    
+            if dtype_str in dtypes:
+                result[col] = str(dtype)
+
+        return result
+
+def _check_ipynb(func):
+    def wrapper(*args, **kwargs): 
+        ip = get_ipython()
+        if ip is None or ip.__class__.__name__ != "ZMQInteractiveShell":
+            warnings.warn("Certain elements looks better  visually in Jupyter (.ipynb) environments.", UserWarning)
+        return func(*args, **kwargs)
+    return wrapper
+
+
+class Edazer:
+    """
+        Initialize the Edazer analyzer.
 
         Parameters
         ----------
-        dtypes : List[str]
-            A list of data types (as strings) to match.
-            Examples: ['int', 'float'], or ['int64', 'object']
+        df : pandas.DataFrame or polars.DataFrame
+            The DataFrame to analyze.
+        backend : str, optional
+            Backend to use ("pandas" or "polars"). Default is "pandas".
+
+        Raises
+        ------
+        TypeError
+            If DataFrame type does not match backend.
+    """
+
+    def __init__(self, df: pd.DataFrame | pl.DataFrame, backend: str = "pandas"):
+        backend = backend.lower()
+        if backend not in ("pandas", "polars"):
+            raise ValueError("Backend must be either pandas or polars.")
+        self._backend = backend
+        
+        self._is_pandas_backend = True if self._backend == "pandas" else False
+
+        if self._is_pandas_backend:
+            if not isinstance(df, pd.DataFrame):
+                raise TypeError(f"df must be a pandas DataFrame for pandas backend but got {type(df)}")
+        else:
+            if not isinstance(df, pl.DataFrame):
+                raise TypeError(f"df must be a polars DataFrame for polars backend but got {type(df)}")
+        self.df = df
+
+        self.engine = _PandasEngine(self.df) if self._is_pandas_backend else _PolarsEngine(self.df)
+    
+    @property
+    def backend(self):
+        return self._backend
+    
+    @_check_ipynb
+    def lookup(self, option: str= "head"):
+        """
+        Display a subset of the DataFrame.
+
+        Parameters
+        ----------
+        option : str, optional
+            Type of subset to display:
+            - "head": first few rows
+            - "tail": last few rows
+            - "sample": random sample
+        """
+
+        option = option.lower()
+        if (option == "head"):
+            _smart_display(self.df.head())
+        elif option == "tail":
+            _smart_display(self.df.tail())
+        elif option == "sample":
+            _smart_display(self.df.sample(n=5))    
+        else: 
+            raise ValueError("Invalid option. Valid options are: head, tail, sample")
+
+    @_check_ipynb
+    def summarize_df(self):
+        """
+        Display a comprehensive summary of the DataFrame.
+        """
+        return self.engine.summarize_df()
+    
+    def __call__(self):
+        return self.summarize_df()
+
+    def show_unique_values(self, column_names: list[str], max_unique: int = 10):
+        """
+        Displays the unique values for specified columns.
+
+        Parameters
+        ----------
+        column_names : List[str]
+            List of column names to display unique values for.
+        max_unique : int, optional
+            The maximum number of unique values of a column to display. Defaults to 10.
+        """
+
+        if not isinstance(max_unique, int):
+            raise TypeError("'max_unique' must be an integer.")
+
+        more_than_max_unique_cols = self.engine.show_unique_values(column_names=column_names, max_unique=max_unique)
+        
+        n_exceeding = len(more_than_max_unique_cols)  
+        
+        if len(column_names)==0:
+            print("'column_names' is a empty list!")
+            return  
+        
+        if n_exceeding == len(column_names):
+            print(f"All the mentioned columns have more than {max_unique} unique values.")
+        elif n_exceeding > 0:
+            print(f"\nColumns with more than {max_unique} unique values: {more_than_max_unique_cols}")
+            print("Consider setting 'max_unique' to a higher value.")
+        
+    def cols_with_dtype(self, dtypes: list[str] | None = None, exact: bool = False, return_dtype_map: bool = False
+    ) -> list[str] | dict[str, str]:
+        """
+        Retrieve columns matching specified data types.
+
+        Parameters
+        ----------
+        dtypes : list of str, optional
+            Data types to match. Defaults to categorical/string types.
         exact : bool, optional
-            - If False (default), matches normalized types (e.g., 'float64' → 'float')
-            - If True, requires exact string matches (e.g., 'float64' only matches 'float64')
+            If True, requires exact dtype match.
         return_dtype_map : bool, optional
-            If True, returns a dictionary {column_name: dtype}.
-            If False (default), returns a list of matching column names.
+            If True, returns a mapping {column: dtype}.
+            Otherwise, returns a list of column names.
 
         Returns
         -------
-        List[str] or Dict[str, str]
-            Either a list of column names or a mapping of column name to dtype.
+        list or dict
+            Matching column names or mapping of column names to dtypes.
         """
 
-        if not isinstance(dtypes, list) or not all(isinstance(x, str) for x in dtypes):
+        if dtypes is None:
+            if self._is_pandas_backend:
+                dtypes = ["object", "category"]
+            else:
+                dtypes = ["utf8", "categorical"]
+        
+        if (not isinstance(dtypes, list)) or (not all(isinstance(x, str) for x in dtypes)):
             raise TypeError("`dtypes` must be a list of strings.")
-
+        
         dtypes = [dt.lower().strip() for dt in dtypes]
-
+        
         normalize_dtype = lambda dtype_str : ''.join(char for char in dtype_str.lower() if char.isalpha())
-
-        result = {}
-
-        if self._is_pandas_backend:
-            for col in self.df.columns:
-                col_dtype_str = str(self.df[col].dtype).lower()
-                match_key = col_dtype_str if exact else normalize_dtype(col_dtype_str)
-                if match_key in dtypes:
-                    result[col] = col_dtype_str
-        else:  # Polars
-            for col, dtype in zip(self.df.columns, self.df.dtypes):
-                col_dtype_str = str(dtype).lower()
-                match_key = col_dtype_str if exact else normalize_dtype(col_dtype_str)
-                if match_key in dtypes:
-                    result[col] = col_dtype_str
-
+        result = self.engine.cols_with_dtype(normalize_dtype=normalize_dtype, dtypes=dtypes, exact=exact)
+        
         return result if return_dtype_map else list(result.keys())
+    
 
+if __name__ == "__main__":
+    import seaborn as sns
+    df = sns.load_dataset("tips")
+    print(df.dtypes)
+
+    df_zer = Edazer(df)
+    print(df_zer.cols_with_dtype(["float64"], exact=True))
