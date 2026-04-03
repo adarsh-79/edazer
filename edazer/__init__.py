@@ -9,4 +9,4 @@ from .utils.idf import interactive_df
 
 from .utils.pk import get_primary_key
 
-__version__ = "0.1.4"
+__version__ = "0.2.0"
