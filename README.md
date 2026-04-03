@@ -1,199 +1,254 @@
-# edazer
+# 🚀 edazer
 
-**edazer** is a lightweight Python package for performing common exploratory data analysis (EDA) tasks. Instead of having to write code to perform the same operation every time we work on a new project, edazer intends to quicken up these steps in few lines of code.
+**edazer** is a lightweight Python package designed to accelerate **exploratory data analysis (EDA)** workflows. It provides simple, intuitive, and consistent APIs to inspect, summarize, and understand datasets—supporting both **pandas** and **polars** backends.
 
-It provides quick and intuitive methods to inspect, summarize, and understand datasets—supporting both pandas and polars backends.
-
-*Kaggle Notebook quick tutorial on Edazer**: [https://www.kaggle.com/code/adarsh79x/edazer-for-quick-eda-pandas-polars-profiling]
-
-Includes utilities for:
-
-* Interactive DataFrame exploration (via itables)
-* Automated profiling reports (via a wrapper around ydata-profiling)
-* Unique key detection (via `get_primary_key()`)
-
-🚀 Ideal for:
-
-* Jupyter notebooks
-* Fast, one-line data profiling
-* Early-stage dataset exploration
+Instead of rewriting repetitive EDA code for every project, **edazer** helps you get insights in just a few lines.
 
 ---
 
-## Features
+## 📓 Kaggle Tutorial
 
-- **Quick DataFrame Summaries:** Instantly view info, describe, nulls, duplicates, and shape using `summary` method
-- **Unique Value Inspection:** Easily display unique values for any or all columns.
-- **Type-based Column Selection:** Find columns by dtype (e.g., int, float categorical).
-- **Flexible Subsetting:** Use the `lookup` method to view head, tail, or random samples.
-- **Custom DataFrame Naming:** Track multiple DataFrames with custom names for clarity.
-- **Primary Key Detection:** Automatically identify single or multi-column combinations that can serve as unique identifiers.
+👉 Quick hands-on guide:  
+https://www.kaggle.com/code/adarsh79x/edazer-for-quick-eda-pandas-polars-profiling
 
 ---
 
-## Installation
+## ✨ What’s New in `v0.2.0`
 
-```bash
-pip install edazer==0.1.4.1
+- Improved backend abstraction for **pandas & polars**
+- Cleaner API for dtype-based column selection
+- Enhanced unique value inspection
+- Better handling of edge cases (non-hashable columns, dtype normalization)
+- Internal performance and structure improvements
+
+---
+
+## 🎯 Use Cases
+
+- ⚡ Quick dataset understanding
+- 📊 Early-stage data exploration
+- 📓 Jupyter notebook workflows
+- 🔍 Identifying data quality issues
+- 🧠 Feature understanding before modeling
+
+---
+
+## 🔧 Features
+
+### 📌 DataFrame Summary
+
+Get a complete overview in one call:
+
+- Schema / info  
+- Descriptive statistics  
+- Null percentages  
+- Duplicate count  
+- Unique values  
+- Shape  
+
+```python
+dz.summarize_df()
 ```
 
 ---
 
-## Quick Start with Titanic Dataset
+### 🔍 Smart Data Inspection
+
+```python
+dz.lookup("head")     # first rows
+dz.lookup("tail")     # last rows
+dz.lookup("sample")   # random sample
+```
+
+---
+
+### 🧩 Unique Value Exploration
+
+```python
+dz.show_unique_values(
+    column_names=["col1", "col2"],
+    max_unique=10
+)
+```
+
+- Automatically skips noisy columns  
+- Suggests when to increase threshold  
+
+---
+
+### 🧠 Dtype-Based Column Selection
+
+```python
+dz.cols_with_dtype(["float", "int"])
+```
+
+Options:
+
+- `exact=True` → strict dtype match (`float64`)  
+- `return_dtype_map=True` → returns `{column: dtype}`  
+
+---
+
+### 🔑 Primary Key Detection
+
+```python
+from edazer import get_primary_key
+
+get_primary_key(df, threshold=0.9, n_combos=2)
+```
+
+Find:
+
+- Single-column unique identifiers  
+- Multi-column composite keys  
+
+---
+
+### 📊 Data Profiling (Optional)
+
+```python
+from edazer.profiling import show_data_profile
+
+show_data_profile(dz)
+```
+
+Powered by `ydata-profiling`.
+
+---
+
+### 🖱️ Interactive Tables
+
+```python
+from edazer import interactive_df
+
+interactive_df()
+```
+
+Enables rich DataFrame viewing using `itables`.
+
+---
+
+## 📦 Installation
+
+```bash
+pip install edazer==0.2.0
+```
+
+---
+
+## ⚡ Quick Start
 
 ```python
 import seaborn as sns
-from edazer import Edazer, get_primary_key, interactive_df
-from edazer.profiling import show_data_profile
-
-# Enable interactive DataFrames (via itables)
-interactive_df()
+from edazer import Edazer
 
 # Load dataset
-titanic = sns.load_dataset('titanic')
+df = sns.load_dataset("titanic")
 
-# Initialize Edazer instance
-titanic_dz = Edazer(titanic, backend="pandas", name="titanic")
+# Initialize
+dz = Edazer(df, backend="pandas")
 
-# Complete DataFrame summary
-titanic_dz.summarize_df()
+# Summary
+dz.summarize_df()
 
-# Data profiling report (via ydata_profiling)
-show_data_profile(titanic_dz)
+# Unique values
+dz.show_unique_values(column_names=["sex", "class"])
 
-# Show unique values for specific columns
-titanic_dz.show_unique_values(column_names=['class', 'embarked'], max_unique=5)
+# Dtype filtering
+print(dz.cols_with_dtype(["float"]))
 
-# Get float columns
-print(titanic_dz.cols_with_dtype(['float'], exact=False))
-
-# Combine methods: get object columns and show their unique values
-titanic_dz.show_unique_values(column_names=titanic_dz.cols_with_dtype(dtypes=["object"]))
-
-# To identify unique identifiers
-get_primary_key(df, threshold=1.0, n_combos=2)
-
-# View first few rows
-print(titanic_dz.lookup("head"))
-
-# Access raw DataFrame
-print(titanic_dz.df.columns)
-
-
+# Inspect data
+dz.lookup("head")
 ```
 
 ---
 
 ## 📘 API Reference
 
-### `Edazer(df, backend="pandas", name=None)`
+### `Edazer(df, backend="pandas")`
 
 Create an analyzer instance.
 
 - `df`: `pd.DataFrame` or `pl.DataFrame`  
-- `backend`: `"pandas"` or `"polars"` (default: `"pandas"`)  
-- `name`: Optional string label for the DataFrame
+- `backend`: `"pandas"` or `"polars"`  
 
 ---
 
 ### `summarize_df()`
 
-Print summary:
+Displays:
 
-- Schema/info
-- Descriptive stats
-- Null/duplicate counts
-- Unique values
-- Shape
-
----
-
-### `show_unique_values(column_names=None, max_unique=10)`
-
-Show unique values for columns.
-
-- `column_names`: Optional list of columns  
-- `max_unique`: Max unique values to display per column
+- Schema/info  
+- Descriptive stats  
+- Null/duplicate counts  
+- Unique values  
+- Shape  
 
 ---
 
-### `cols_with_dtype(dtypes, exact=False, return_dtype_map=False)`
+### `show_unique_values(column_names, max_unique=10)`
 
-Return columns matching specified dtypes.
+- `column_names`: list of columns  
+- `max_unique`: max values to display  
 
-- `dtypes`: List of type strings (e.g. `["int", "object"]`)  
-- `exact`: Match full dtype string (e.g. `"int64"`)  
-- `return_dtype_map`: If `True`, return `{col: dtype}`
+---
+
+### `cols_with_dtype(dtypes=None, exact=False, return_dtype_map=False)`
+
+- `dtypes`: list of dtype strings  
+- `exact`: strict match  
+- `return_dtype_map`: return dict instead of list  
 
 ---
 
 ### `lookup(option="head")`
 
-Quickly inspect data.
-
-- `option`: `"head"`, `"tail"`, or `"sample"`
+- `"head"` → first rows  
+- `"tail"` → last rows  
+- `"sample"` → random rows  
 
 ---
 
-### `🆕 get_primary_key(df, threshold=0.9, n_combos=1, valid_column_dtypes=None)`
+### `get_primary_key(df, threshold=0.9, n_combos=1, valid_column_dtypes=None)`
 
-Identify column(s) or column combinations that can serve as unique keys.
+Detect candidate keys.
 
-**Parameters:**
+Returns:
 
-- `df`  – The input DataFrame.
-- `threshold` – Proportion of uniqueness required (default = 0.9).
-- `n_combos`– Number of columns to combine when testing composite keys (default = 1).
-- `valid_column_dtypes` – Data types to consider (default = ["int", "datetime64", "object"]).
+- `List[str]` or `List[List[str]]`
 
-**Returns**
+---
 
-List[str] or List[List[str]]: Candidate key columns or combinations that are likely unique identifiers.
-
-#### Example usage
+## 📊 Example Output
 
 ```python
-from edazer import get_primary_key
-import pandas as pd
-
-df = pd.DataFrame({
-    "id": [1, 2, 3, 4],
-    "name": ["A", "B", "C", "A"],
-    "date": pd.date_range("2023-01-01", periods=4)
-})
-
-get_primary_key(df, threshold=1.0, n_combos=2)
-# Output: [['id', 'name'], ['id', 'date'], ['name', 'date']]
+dz.show_unique_values(
+    column_names=dz.cols_with_dtype(["object"])
+)
 ```
 
-## Example Output
-
-```python
-titanic_eda.show_unique_values(column_names=titanic_dz.cols_with_dtype(dtypes=["object"]))
-
-# Output:
+```
 sex: ['male', 'female']
 embarked: ['S', 'C', 'Q', nan]
-who: ['man', 'woman', 'child']
-embark_town: ['Southampton', 'Cherbourg', 'Queenstown', nan]
-alive: ['no', 'yes']
+class: ['Third', 'First', 'Second']
 ```
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
-Contributions are highly welcome! 
+Contributions are welcome!
 
-https://github.com/adarsh-79/edazer
+GitHub: https://github.com/adarsh-79/edazer
 
 ---
 
-## License
+## 📄 License
 
 MIT License
 
 ---
 
-## Author
+## 👨‍💻 Author
+
 [adarsh3690704](https://github.com/adarsh-79)
