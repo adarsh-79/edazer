@@ -8,7 +8,7 @@ Instead of rewriting repetitive EDA code for every project, **edazer** helps you
 
 ## 📓 Kaggle Tutorial
 
-👉 Quick hands-on guide:  
+👉 Quick hands-on guide: ( uses previous version)
 https://www.kaggle.com/code/adarsh79x/edazer-for-quick-eda-pandas-polars-profiling
 
 ---
